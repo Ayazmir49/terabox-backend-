@@ -1,1 +1,3 @@
 20
+cache=~/.npm
+prefer-offline=false
