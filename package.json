@@ -4,8 +4,12 @@
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
-    "build": "echo skipped"
+    "postinstall": "puppeteer install"
   },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
   "engines": {
     "node": "18.x"
   },
