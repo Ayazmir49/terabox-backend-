@@ -18,7 +18,7 @@ app.post('/fetch', async (req, res) => {
     const browser = await puppeteer.launch({
       headless: true,
       args: ['--no-sandbox', '--disable-setuid-sandbox'],
-      // executablePath: puppeteer.executablePath(), // Commented out for Render compatibility
+      executablePath: puppeteer.executablePath(), // ✅ USE THIS!
     });
 
     const page = await browser.newPage();
@@ -52,7 +52,6 @@ app.post('/fetch', async (req, res) => {
     }
 
     res.json(videoInfo);
-
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
