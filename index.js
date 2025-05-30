@@ -1,4 +1,7 @@
 const chromium = require('chrome-aws-lambda');
+const puppeteer = require('puppeteer-core');
+chromium.puppeteer = puppeteer;
+
 const express = require('express');
 const cors = require('cors');
 
@@ -18,7 +21,7 @@ app.post('/fetch', async (req, res) => {
     const browser = await chromium.puppeteer.launch({
       args: chromium.args,
       defaultViewport: chromium.defaultViewport,
-      executablePath: await chromium.executablePath,
+      executablePath: await chromium.executablePath || '/usr/bin/chromium-browser',
       headless: chromium.headless,
     });
 
@@ -53,6 +56,7 @@ app.post('/fetch', async (req, res) => {
 
     res.json(videoInfo);
   } catch (error) {
+    console.error('Fetch Error:', error);
     res.status(500).json({ error: error.message });
   }
 });
