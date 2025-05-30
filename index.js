@@ -1,6 +1,5 @@
-const express = require('express');
-const puppeteer = require('puppeteer-core');
 const chromium = require('chrome-aws-lambda');
+const express = require('express');
 const cors = require('cors');
 
 const app = express();
@@ -16,8 +15,9 @@ app.post('/fetch', async (req, res) => {
   if (!link) return res.status(400).json({ error: 'Link required' });
 
   try {
-    const browser = await puppeteer.launch({
+    const browser = await chromium.puppeteer.launch({
       args: chromium.args,
+      defaultViewport: chromium.defaultViewport,
       executablePath: await chromium.executablePath,
       headless: chromium.headless,
     });
@@ -28,7 +28,6 @@ app.post('/fetch', async (req, res) => {
     const videoInfo = await page.evaluate(() => {
       const scriptTags = Array.from(document.querySelectorAll('script'));
       const targetScript = scriptTags.find(tag => tag.textContent.includes('window.playinfo'));
-
       if (!targetScript) return null;
 
       const match = targetScript.textContent.match(/window\.playinfo\s*=\s*(\{.*?\});/);
