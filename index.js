@@ -1,6 +1,10 @@
 const express = require('express');
-const chromium = require('chrome-aws-lambda');
 const cors = require('cors');
+const chromium = require('chrome-aws-lambda');
+
+// Conditionally require full puppeteer for local dev
+const isDev = !process.env.AWS_REGION && process.env.NODE_ENV !== 'production';
+const puppeteer = isDev ? require('puppeteer') : require('puppeteer-core');
 
 const app = express();
 app.use(cors());
@@ -17,10 +21,14 @@ app.post('/fetch', async (req, res) => {
   let browser = null;
 
   try {
-    browser = await chromium.puppeteer.launch({
+    const executablePath = isDev
+      ? undefined // let Puppeteer find Chrome locally
+      : await chromium.executablePath;
+
+    browser = await puppeteer.launch({
       args: chromium.args,
       defaultViewport: chromium.defaultViewport,
-      executablePath: await chromium.executablePath,
+      executablePath,
       headless: chromium.headless,
     });
 
