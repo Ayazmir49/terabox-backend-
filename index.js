@@ -61,7 +61,12 @@ app.post('/fetch', async (req, res) => {
       return res.status(500).json({ error: 'Could not extract video URLs' });
     }
 
-    res.json(videoInfo);
+    // ✅ Send structured response that Flutter expects
+    res.json({
+      name: 'Terabox Video',
+      links: videoInfo
+    });
+
   } catch (error) {
     if (browser) await browser.close();
     res.status(500).json({ error: error.message });
