@@ -1,7 +1,6 @@
 const express = require('express');
 const cors = require('cors');
 const puppeteer = require('puppeteer');
-const chromium = require('chrome-aws-lambda');
 
 const app = express();
 app.use(cors());
@@ -18,13 +17,9 @@ app.post('/fetch', async (req, res) => {
   let browser;
 
   try {
-    const isProduction = !!process.env.AWS_REGION || process.env.NODE_ENV === 'production';
-
     browser = await puppeteer.launch({
-      args: isProduction ? chromium.args : [],
-      executablePath: isProduction ? await chromium.executablePath : undefined,
-      defaultViewport: chromium.defaultViewport,
-      headless: chromium.headless,
+      headless: 'new', // Ensures compatibility with latest versions
+      args: ['--no-sandbox', '--disable-setuid-sandbox']
     });
 
     const page = await browser.newPage();
@@ -60,7 +55,6 @@ app.post('/fetch', async (req, res) => {
       name: 'Terabox Video',
       links: videoInfo
     });
-
   } catch (error) {
     if (browser) await browser.close();
     res.status(500).json({ error: error.message });
