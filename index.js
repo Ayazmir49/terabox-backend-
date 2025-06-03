@@ -1,10 +1,7 @@
 const express = require('express');
 const cors = require('cors');
+const puppeteer = require('puppeteer');
 const chromium = require('chrome-aws-lambda');
-
-// Conditionally require full puppeteer for local dev
-const isDev = !process.env.AWS_REGION && process.env.NODE_ENV !== 'production';
-const puppeteer = isDev ? require('puppeteer') : require('puppeteer-core');
 
 const app = express();
 app.use(cors());
@@ -18,17 +15,15 @@ app.post('/fetch', async (req, res) => {
   const { link } = req.body;
   if (!link) return res.status(400).json({ error: 'Link required' });
 
-  let browser = null;
+  let browser;
 
   try {
-    const executablePath = isDev
-      ? undefined // let Puppeteer find Chrome locally
-      : await chromium.executablePath;
+    const isProduction = !!process.env.AWS_REGION || process.env.NODE_ENV === 'production';
 
     browser = await puppeteer.launch({
-      args: chromium.args,
+      args: isProduction ? chromium.args : [],
+      executablePath: isProduction ? await chromium.executablePath : undefined,
       defaultViewport: chromium.defaultViewport,
-      executablePath,
       headless: chromium.headless,
     });
 
@@ -61,7 +56,6 @@ app.post('/fetch', async (req, res) => {
       return res.status(500).json({ error: 'Could not extract video URLs' });
     }
 
-    // ✅ Send structured response that Flutter expects
     res.json({
       name: 'Terabox Video',
       links: videoInfo
