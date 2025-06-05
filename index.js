@@ -18,8 +18,9 @@ app.post('/fetch', async (req, res) => {
 
   try {
     browser = await puppeteer.launch({
-      headless: 'new', // Ensures compatibility with latest versions
-      args: ['--no-sandbox', '--disable-setuid-sandbox']
+      headless: 'new', // Use headless mode
+      executablePath: '/opt/render/.cache/puppeteer/chrome/linux-137.0.7151.55/chrome-linux64/chrome', // Explicit Chrome path on Render
+      args: ['--no-sandbox', '--disable-setuid-sandbox'], // Needed for sandbox restrictions
     });
 
     const page = await browser.newPage();
