@@ -1,8 +1,8 @@
 const express = require('express');
 const cors = require('cors');
-const puppeteer = require('puppeteer');
-
+const puppeteer = require('puppeteer-core'); // ✅ Use puppeteer-core
 const app = express();
+
 app.use(cors());
 app.use(express.json());
 
@@ -18,17 +18,19 @@ app.post('/fetch', async (req, res) => {
 
   try {
     browser = await puppeteer.launch({
-      headless: 'new', // Use headless mode
-      executablePath: '/opt/render/.cache/puppeteer/chrome/linux-137.0.7151.55/chrome-linux64/chrome', // Explicit Chrome path on Render
-      args: ['--no-sandbox', '--disable-setuid-sandbox'], // Needed for sandbox restrictions
+      headless: 'new',
+      executablePath: process.env.PUPPETEER_EXECUTABLE_PATH, // ✅ Use env-based path
+      args: ['--no-sandbox', '--disable-setuid-sandbox'],
     });
 
     const page = await browser.newPage();
-    await page.goto(link, { waitUntil: 'networkidle2' });
+    await page.goto(link, { waitUntil: 'networkidle2', timeout: 60000 });
 
     const videoInfo = await page.evaluate(() => {
       const scriptTags = Array.from(document.querySelectorAll('script'));
-      const targetScript = scriptTags.find(tag => tag.textContent.includes('window.playinfo'));
+      const targetScript = scriptTags.find(tag =>
+        tag.textContent.includes('window.playinfo')
+      );
       if (!targetScript) return null;
 
       const match = targetScript.textContent.match(/window\.playinfo\s*=\s*(\{.*?\});/);
