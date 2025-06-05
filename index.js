@@ -1,8 +1,8 @@
 const express = require('express');
 const cors = require('cors');
-const puppeteer = require('puppeteer-core'); // ✅ Use puppeteer-core
-const app = express();
+const puppeteer = require('puppeteer');
 
+const app = express();
 app.use(cors());
 app.use(express.json());
 
@@ -18,19 +18,16 @@ app.post('/fetch', async (req, res) => {
 
   try {
     browser = await puppeteer.launch({
-      headless: 'new',
-      executablePath: process.env.PUPPETEER_EXECUTABLE_PATH, // ✅ Use env-based path
-      args: ['--no-sandbox', '--disable-setuid-sandbox'],
+      headless: 'new', // Use headless mode
+      args: ['--no-sandbox', '--disable-setuid-sandbox'], // Sandbox flags for environments like Render
     });
 
     const page = await browser.newPage();
-    await page.goto(link, { waitUntil: 'networkidle2', timeout: 60000 });
+    await page.goto(link, { waitUntil: 'networkidle2' });
 
     const videoInfo = await page.evaluate(() => {
       const scriptTags = Array.from(document.querySelectorAll('script'));
-      const targetScript = scriptTags.find(tag =>
-        tag.textContent.includes('window.playinfo')
-      );
+      const targetScript = scriptTags.find(tag => tag.textContent.includes('window.playinfo'));
       if (!targetScript) return null;
 
       const match = targetScript.textContent.match(/window\.playinfo\s*=\s*(\{.*?\});/);
@@ -65,6 +62,6 @@ app.post('/fetch', async (req, res) => {
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`Backend running on http://localhost:${PORT}`);
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`Backend running on http://0.0.0.0:${PORT}`);
 });
