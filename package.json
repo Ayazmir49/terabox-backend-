@@ -8,9 +8,6 @@
   "dependencies": {
     "cors": "^2.8.5",
     "express": "^5.1.0",
-    "puppeteer": "^24.10.0"
-  },
-  "puppeteer": {
-    "skipChromiumDownload": true
+    "puppeteer-core": "^24.10.0"
   }
 }
