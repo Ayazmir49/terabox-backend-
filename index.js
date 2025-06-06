@@ -18,8 +18,9 @@ app.post('/fetch', async (req, res) => {
 
   try {
     browser = await puppeteer.launch({
-      headless: 'new', // Use headless mode
-      args: ['--no-sandbox', '--disable-setuid-sandbox'], // Sandbox flags for environments like Render
+      headless: 'new',
+      executablePath: process.env.PUPPETEER_EXECUTABLE_PATH, // ✅ Required for Render
+      args: ['--no-sandbox', '--disable-setuid-sandbox'], // ✅ Required for containerized environments
     });
 
     const page = await browser.newPage();
