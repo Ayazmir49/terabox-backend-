@@ -42,15 +42,13 @@ app.post('/fetch', async (req, res) => {
       const iframe = frames.find(f => f.url().includes('terabox') || f.name());
 
       if (iframe) {
-        // Attempt to simulate a play click in the iframe
         await iframe.click('video, button, .play-button, .vjs-big-play-button');
-        await page.waitForTimeout(8000); // Wait longer for video to load
+        await new Promise((r) => setTimeout(r, 8000));
       } else {
-        await page.waitForTimeout(8000); // Fallback delay
+        await new Promise((r) => setTimeout(r, 8000));
       }
     } catch (err) {
-      // Fallback if play button/iframe not found
-      await page.waitForTimeout(8000);
+      await new Promise((r) => setTimeout(r, 8000));
     }
 
     await browser.close();
@@ -59,7 +57,6 @@ app.post('/fetch', async (req, res) => {
       return res.status(500).json({ error: 'Could not extract video URLs' });
     }
 
-    // Format response
     const links = {};
     [...videoResponses].forEach((url, i) => {
       links[`quality_${i + 1}`] = url;
