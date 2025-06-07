@@ -36,30 +36,27 @@ RUN apt-get update && apt-get install -y \
     lsb-release \
     xdg-utils \
     --no-install-recommends && \
-    rm -rf /var/lib/apt/lists/*
-
-# Add Chrome signing key and repo
-RUN wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | apt-key add - && \
+    wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | apt-key add - && \
     echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" > /etc/apt/sources.list.d/google-chrome.list && \
     apt-get update && \
     apt-get install -y google-chrome-stable --no-install-recommends && \
-    rm -rf /var/lib/apt/lists/*
+    apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Set working directory
 WORKDIR /usr/src/app
 
 # Copy package files and install dependencies
 COPY package*.json ./
-RUN npm install
+RUN npm install --omit=dev --no-audit --no-fund
 
-# Copy all source code
+# Copy app source code
 COPY . .
 
-# Tell Puppeteer where Chrome executable is
+# Tell Puppeteer where Chrome is
 ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/google-chrome-stable
 
-# Expose your app port
+# Expose backend port
 EXPOSE 3000
 
-# Start your Node app
-CMD [ "node", "index.js" ]
+# Start your app
+CMD ["node", "index.js"]
