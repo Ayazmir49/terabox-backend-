@@ -15,47 +15,49 @@ app.post('/fetch', async (req, res) => {
   if (!link) return res.status(400).json({ error: 'Link required' });
 
   let browser;
-
   try {
     browser = await puppeteer.launch({
       headless: 'new',
       executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || '/usr/bin/google-chrome-stable',
-      args: ['--no-sandbox', '--disable-setuid-sandbox'], // Required for Render and similar container environments
+      args: ['--no-sandbox', '--disable-setuid-sandbox'],
     });
 
     const page = await browser.newPage();
-    await page.goto(link, { waitUntil: 'networkidle2' });
 
-    const videoInfo = await page.evaluate(() => {
-      const scriptTags = Array.from(document.querySelectorAll('script'));
-      const targetScript = scriptTags.find(tag => tag.textContent.includes('window.playinfo'));
-      if (!targetScript) return null;
+    // Array to collect detected video URLs
+    const videoResponses = [];
 
-      const match = targetScript.textContent.match(/window\.playinfo\s*=\s*(\{.*?\});/);
-      if (!match) return null;
-
-      try {
-        const playinfo = JSON.parse(match[1]);
-        const qualities = {};
-        (playinfo.media || []).forEach(item => {
-          qualities[item.quality] = item.url;
-        });
-        return qualities;
-      } catch (e) {
-        return null;
+    // Listen to all network responses to detect video URLs
+    page.on('response', async (response) => {
+      const url = response.url();
+      if (url.includes('.mp4') || url.includes('.m3u8')) {
+        videoResponses.push(url);
       }
     });
 
+    // Go to the Terabox shared link page
+    await page.goto(link, { waitUntil: 'networkidle2' });
+
+    // Wait some extra seconds to allow any video requests to fire
+    await page.waitForTimeout(5000);
+
     await browser.close();
 
-    if (!videoInfo || Object.keys(videoInfo).length === 0) {
+    if (videoResponses.length === 0) {
       return res.status(500).json({ error: 'Could not extract video URLs' });
     }
 
+    // Format links object with simple keys
+    const links = {};
+    videoResponses.forEach((url, i) => {
+      links[`quality_${i + 1}`] = url;
+    });
+
     res.json({
       name: 'Terabox Video',
-      links: videoInfo
+      links,
     });
+
   } catch (error) {
     if (browser) await browser.close();
     res.status(500).json({ error: error.message });
